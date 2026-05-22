@@ -1,14 +1,18 @@
 import * as Tone from "tone";
 import { useRef, useEffect, useState } from "react";
 import { useSortable, isSortable } from "@dnd-kit/react/sortable";
-import { arrayMove } from "@dnd-kit/helpers";
 import { DragDropProvider } from "@dnd-kit/react";
+import { NOTES, type Note } from "./notes";
 
-type SortNotesProps = {
-  data: {
-    notes: string[];
-  };
-};
+function getCorrectAnswer(notes: Note[]): Note[] {
+  return [...notes].sort((a, b) => NOTES.indexOf(b) - NOTES.indexOf(a));
+}
+
+function isCorrect(userAnswer: Note[], notes: Note[]): boolean {
+  const correct = getCorrectAnswer(notes);
+  console.log("correct : ", correct);
+  return userAnswer.every((note, i) => note === correct[i]);
+}
 
 function Sortable({
   id,
@@ -33,8 +37,14 @@ function Sortable({
   );
 }
 
-function SortNotes({ data }: SortNotesProps) {
-  const [items, setItems] = useState(data.notes);
+function SortNotes({
+  notes,
+  onLevelComplete,
+}: {
+  notes: Note[];
+  onLevelComplete: (score: number) => void;
+}) {
+  const [items, setItems] = useState(notes);
 
   const synthRef = useRef<Tone.Synth | null>(null);
 
@@ -61,7 +71,14 @@ function SortNotes({ data }: SortNotesProps) {
   }
 
   function handleValidate() {
-    console.log("Test :", items);
+    console.log(items);
+    if (isCorrect(items, notes)) {
+      console.log("GAGNÉ, BRAVO");
+      onLevelComplete(1);
+    } else {
+      console.log("PERDU, DOMMAGE");
+      onLevelComplete(0);
+    }
   }
 
   return (
